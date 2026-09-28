@@ -175,6 +175,20 @@ O link `wa.me` só aceita texto; não existe forma de anexar imagem automaticame
 
 Com volume, o passo seguinte é a WhatsApp Cloud API (template de mensagem + mídia), mas ela exige conta Business verificada e custa por conversa.
 
-## 8. LGPD
+## 8. Rodar com Docker (local)
+
+Para levantar o site e o Worker localmente sem Cloudflare:
+
+```bash
+docker compose up --build            # site em http://localhost:8080
+FAL_KEY=xxxxx docker compose up      # também liga a rota de IA /simulate
+```
+
+- `web`: nginx servindo o `index.html` na porta `8080`.
+- `api`: roda o Worker via `wrangler dev` na porta `8787` (só para desenvolvimento; em produção use `wrangler deploy`, ver §6). O `ALLOWED_ORIGIN` já vem liberado para `http://localhost:8080`.
+
+Para o site local falar com o Worker local, defina no `index.html` `API_BASE: 'http://localhost:8787'`.
+
+## 9. LGPD
 
 Fotos do interior da casa são dados pessoais. No MVP 0 a foto não sai do navegador, exceto quando o cliente usa a IA. Se ativar R2, informe no site que a imagem é armazenada para o atendimento e configure uma regra de expiração (ex.: 90 dias) no bucket.

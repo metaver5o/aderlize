@@ -1,0 +1,34 @@
+# Aderlize Cortinas: local full-stack (static site + Worker proxy)
+#
+#   docker compose up --build          # site on http://localhost:8080
+#   FAL_KEY=xxxxx docker compose up     # also enables the AI /simulate route
+#
+# The `api` service runs the Cloudflare Worker locally via `wrangler dev`.
+# In production the Worker is deployed with `wrangler deploy` (see README §6),
+# so this service is only for local development/testing.
+
+services:
+  web:
+    build: .
+    image: aderlize-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./worker.js:/app/worker.js:ro
+      - ./wrangler.toml:/app/wrangler.toml:ro
+    environment:
+      FAL_KEY: "${FAL_KEY:-}"
+      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN:-http://localhost:8080}"
+    command: >
+      sh -c "printf 'FAL_KEY=%s\n' \"$$FAL_KEY\" > .dev.vars &&
+             npx --yes wrangler@3 dev
+               --ip 0.0.0.0 --port 8787
+               --var ALLOWED_ORIGIN:\"$$ALLOWED_ORIGIN\""
+    ports:
+      - "8787:8787"
+    restart: unless-stopped

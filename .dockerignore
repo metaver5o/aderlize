@@ -1,0 +1,10 @@
+.git
+.gitignore
+files.zip
+node_modules
+.wrangler
+.dev.vars
+README.md
+docker-compose.yml
+Dockerfile
+.DS_Store
