@@ -1,0 +1,13 @@
+name = "aderlize-api"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://SEU-USUARIO.github.io"
+FAL_MODEL = "fal-ai/nano-banana-2/edit"
+# PUBLIC_BUCKET_URL = "https://pub-xxxx.r2.dev"
+
+# Descomente para ativar /upload (link da simulação dentro da mensagem do WhatsApp)
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "aderlize-simulacoes"

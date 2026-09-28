@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aderlize Cortinas | Simulador de cortinas sob medida</title>
+<meta name="description" content="Envie a foto da sua janela, escolha modelo e tecido e veja a cortina aplicada. Orçamento na hora, direto no WhatsApp da Aderlize.">
+<meta name="theme-color" content="#1d2927">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e7eae4; --paper:#f6f6f2; --white:#fff;
+  --ink:#1d2927; --ink-2:#4f5d59; --line:#c9d0c6;
+  --brass:#94692a; --plum:#4a2c42; --plum-2:#6b4561; --wa:#1d6b45;
+  --display:'Bodoni Moda','Didot','Bodoni 72',Georgia,serif;
+  --sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans)}
+img,canvas{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--plum);outline-offset:3px}
+.skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;background:var(--white);padding:8px 12px;z-index:10}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* topo */
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;gap:16px}
+.logo{display:flex;align-items:baseline;gap:10px;text-decoration:none}
+.logo b{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:.005em;line-height:1}
+.logo span{font-size:14px;color:var(--ink-2)}
+.top nav{display:flex;align-items:center;gap:22px}
+.top nav a:not(.btn){text-decoration:none;color:var(--ink-2);font-weight:500}
+.top nav a:not(.btn):hover{color:var(--ink)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;align-items:end;padding:40px 0 34px;border-bottom:1px solid var(--line)}
+.hero h1{font-family:var(--display);font-weight:500;font-size:clamp(42px,6.4vw,86px);line-height:.96;letter-spacing:-.015em;margin:0;max-width:13ch}
+.hero p{margin:0 0 8px;color:var(--ink-2);font-size:17px;max-width:44ch}
+
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px/1 var(--sans);padding:12px 16px;border-radius:999px;border:1px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.btn:disabled{opacity:.55;cursor:progress}
+.btn-ink{background:var(--ink);color:var(--paper)}
+.btn-ink:hover{background:#2c3b38}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink-2)}
+.btn-ghost[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn-plum{background:var(--plum);color:#fff}
+.btn-plum:hover{background:var(--plum-2)}
+.btn-link{background:none;border:0;padding:12px 4px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;font-weight:500}
+.btn-wa{background:var(--wa);color:#fff;width:100%;padding:16px;font-size:16px;margin-top:14px}
+.btn-wa:hover{background:#185a3a}
+.full{width:100%;margin-top:10px}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* simulador */
+.sim{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:28px;padding:32px 0 64px;align-items:start}
+.stage{position:relative;background:#d3d7cf;border-radius:3px;overflow:hidden;display:flex;justify-content:center}
+#stage{display:block;width:100%;height:auto;margin:0 auto}
+#stage.marcando{cursor:crosshair;touch-action:none}
+.hint{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(29,41,39,.88);color:var(--paper);padding:10px 14px;border-radius:3px;font-size:14px;text-align:center;pointer-events:none}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.range{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;margin-right:auto;flex:1 1 220px}
+.range input{flex:1;accent-color:var(--plum)}
+.ia{margin:22px 0 0}
+.ia canvas{display:block;width:100%;height:auto;border-radius:3px}
+.ia figcaption{font-size:14px;color:var(--ink-2);margin-top:8px}
+.nota{font-size:13px;color:var(--ink-2);margin:14px 0 0;max-width:70ch}
+
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:24px}
+.step{padding:22px 0;border-top:1px solid var(--line)}
+.step:first-child{border-top:0;padding-top:0}
+.step:last-child{padding-bottom:0}
+.step h3{display:flex;align-items:baseline;gap:12px;font-family:var(--display);font-weight:500;font-size:24px;line-height:1.1;margin:0 0 14px}
+.step h3 .n{font:700 14px/1 var(--sans);color:var(--brass);min-width:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.help{font-size:13.5px;color:var(--ink-2);margin:10px 0 0}
+
+.modelos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modelo{position:relative;display:block;border:1px solid var(--line);border-radius:3px;padding:10px 12px 12px;cursor:pointer;background:transparent}
+.modelo input{position:absolute;opacity:0;pointer-events:none}
+.modelo svg{display:block;width:100%;height:30px;margin-bottom:6px}
+.modelo strong{display:block;font-size:15px}
+.modelo small{color:var(--ink-2);font-size:12.5px}
+.modelo:has(input:checked){border-color:var(--plum);background:var(--white);box-shadow:inset 0 0 0 1px var(--plum)}
+.modelo:has(input:focus-visible){outline:2px solid var(--plum);outline-offset:2px}
+svg .rail{stroke:var(--ink-2);stroke-width:2;stroke-linecap:round}
+svg .rod{stroke:var(--brass);stroke-width:4;stroke-linecap:round}
+svg .fab{fill:none;stroke:var(--plum);stroke-width:2.2;stroke-linejoin:round}
+svg .ring{fill:var(--paper);stroke:var(--brass);stroke-width:1.8}
+
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:12px 10px}
+.sw{display:flex;flex-direction:column;align-self:start;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.chip{display:block;width:100%;aspect-ratio:1/1.05;background-size:64px;border-radius:2px 2px 0 0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 5px) no-repeat,conic-gradient(from -45deg at bottom,#000 90deg,#0000 0) bottom/10px 5px repeat-x;
+          mask:linear-gradient(#000 0 0) top/100% calc(100% - 5px) no-repeat,conic-gradient(from -45deg at bottom,#000 90deg,#0000 0) bottom/10px 5px repeat-x}
+.sw .nm{display:block;font-size:13px;font-weight:600;line-height:1.25;margin-top:6px}
+.sw .pr{display:block;font-size:12px;color:var(--ink-2)}
+.sw[aria-checked="true"] .chip{outline:2px solid var(--plum);outline-offset:3px}
+.sw[aria-checked="true"] .nm{color:var(--plum)}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600}
+.field input{font:500 16px var(--sans);padding:10px 12px;border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink);width:100%}
+.field input:focus{border-color:var(--plum);outline:none;box-shadow:0 0 0 3px rgba(74,44,66,.15)}
+.check{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:15px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--plum)}
+
+.quote dl{margin:0;display:grid;gap:8px}
+.quote dl div{display:flex;justify-content:space-between;gap:12px;font-size:14.5px}
+.quote dt{color:var(--ink-2)}
+.quote dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.total span{font-weight:600}
+.total strong{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;font-variant-numeric:lining-nums}
+.faixa{font-size:13.5px;color:var(--ink-2);text-align:right;margin-top:4px}
+.quote .fields{margin-top:18px}
+
+/* modelos */
+.modelos-sec{background:var(--ink);color:var(--paper);padding:64px 0 72px}
+.modelos-sec h2{font-family:var(--display);font-weight:500;font-size:clamp(32px,4vw,48px);line-height:1.05;margin:0 0 12px;max-width:20ch}
+.modelos-sec>.wrap>p{color:#b9c2bd;margin:0 0 36px;max-width:56ch}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.mcard svg{width:100%;height:64px;display:block;margin-bottom:16px}
+.mcard svg .rail{stroke:#8d9a95}.mcard svg .fab{stroke:#e8d7c2;stroke-width:2.4}.mcard svg .ring{fill:var(--ink)}
+.mcard h3{font-family:var(--display);font-weight:500;font-size:26px;margin:0 0 4px}
+.mcard .fx{color:#d2a868;font-weight:600;font-size:14px;margin:0 0 10px}
+.mcard p{color:#c3ccc7;margin:0;font-size:15px}
+
+footer{padding:36px 0 44px;color:var(--ink-2);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+footer b{font-family:var(--display);font-weight:600;font-size:20px;color:var(--ink)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:3px;font-size:14.5px;max-width:min(92vw,520px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:960px){
+  .hero{grid-template-columns:1fr;gap:18px;padding-top:24px}
+  .sim{grid-template-columns:1fr}
+  .mgrid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .top nav a:not(.btn){display:none}
+  .logo span{display:none}
+  .panel{padding:18px}
+  .mgrid{grid-template-columns:1fr}
+  .tools .btn{flex:1 1 auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#simulador">Ir para o simulador</a>
+
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#"><b>Aderlize</b><span>Cortinas sob medida</span></a>
+    <nav>
+      <a href="#simulador">Simulador</a>
+      <a href="#modelos">Modelos</a>
+      <a class="btn btn-ghost" id="wa-top" href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Sua janela, sua cortina, antes do primeiro corte.</h1>
+    <p>Envie uma foto do ambiente, escolha o modelo e o tecido e veja a cortina aplicada na sua janela. O orçamento sai na hora e vai direto para a Aderlize pelo WhatsApp.</p>
+  </section>
+
+  <main id="simulador" class="sim">
+    <div class="stage-col">
+      <div class="stage">
+        <canvas id="stage" role="img" aria-label="Simulação da cortina no ambiente"></canvas>
+        <div class="hint" id="hint" hidden>Arraste sobre a foto para marcar onde a cortina vai ficar, do trilho até a barra.</div>
+      </div>
+      <div class="tools">
+        <label class="range">Abertura <input type="range" id="abertura" min="0" max="100" value="25"></label>
+        <button class="btn btn-ghost" id="btn-comparar" aria-pressed="false">Ver sem cortina</button>
+        <button class="btn btn-ghost" id="btn-baixar">Baixar imagem</button>
+        <button class="btn btn-plum" id="btn-ia">Gerar versão realista com IA</button>
+      </div>
+      <figure class="ia" id="ia-box" hidden>
+        <canvas id="ia"></canvas>
+        <figcaption>Versão refinada por IA. Modelo, tecido e posição vêm da sua simulação; o resto da foto é o original.</figcaption>
+      </figure>
+      <p class="nota">A prévia é uma simulação digital e as cores podem variar conforme a tela. A Aderlize confirma medidas e tecido na visita técnica.</p>
+    </div>
+
+    <aside class="panel" aria-label="Monte sua cortina">
+      <section class="step">
+        <h3><span class="n">1</span>Foto do ambiente</h3>
+        <div class="row">
+          <label class="btn btn-ink file">Enviar foto<input type="file" id="foto" accept="image/*"></label>
+          <button class="btn btn-ghost" id="btn-remarcar">Remarcar área</button>
+          <button class="btn btn-link" id="btn-demo">Usar sala de exemplo</button>
+        </div>
+        <p class="help">Fotografe de frente para a janela, com o ambiente iluminado e a parede inteira aparecendo.</p>
+      </section>
+
+      <section class="step">
+        <h3><span class="n">2</span>Modelo</h3>
+        <div class="modelos" id="modelos-opcoes" role="radiogroup" aria-label="Modelo da cortina"></div>
+      </section>
+
+      <section class="step">
+        <h3><span class="n">3</span>Tecido</h3>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Tecido"></div>
+        <p class="help" id="tecido-info"></p>
+      </section>
+
+      <section class="step">
+        <h3><span class="n">4</span>Medidas do vão</h3>
+        <div class="fields">
+          <label class="field">Largura (m)<input type="number" id="largura" inputmode="decimal" min="0.4" max="8" step="0.01" value="2.40"></label>
+          <label class="field">Altura (m)<input type="number" id="altura" inputmode="decimal" min="0.4" max="4.5" step="0.01" value="2.50"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="forro"> Forro blackout</label>
+        <label class="check"><input type="checkbox" id="instalacao" checked> Incluir instalação</label>
+        <p class="help">Largura: a parede que a cortina vai cobrir. Altura: do trilho até onde a cortina termina.</p>
+      </section>
+
+      <section class="step quote" aria-live="polite">
+        <h3><span class="n">5</span>Orçamento estimado</h3>
+        <dl id="quote-lines"></dl>
+        <div class="total"><span>Total</span><strong id="total">—</strong></div>
+        <div class="faixa" id="faixa"></div>
+        <p class="help" id="consumo-info"></p>
+        <div class="fields">
+          <label class="field">Seu nome<input id="cli-nome" autocomplete="name"></label>
+          <label class="field">Bairro ou cidade<input id="cli-local" autocomplete="address-level2"></label>
+        </div>
+        <button class="btn btn-wa" id="btn-wa">Enviar orçamento pelo WhatsApp</button>
+        <button class="btn btn-ghost full" id="btn-share" hidden>Compartilhar imagem da simulação</button>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<section id="modelos" class="modelos-sec">
+  <div class="wrap">
+    <h2>Os modelos, vistos de cima</h2>
+    <p>O desenho mostra como o tecido dobra no trilho. Quanto mais fundo o franzido, mais tecido o modelo consome por metro de janela.</p>
+    <div class="mgrid" id="mgrid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>Aderlize Cortinas</b><br>Cortinas sob medida, com visita técnica e instalação.</div>
+    <div><a id="wa-foot" href="#" target="_blank" rel="noopener">Atendimento pelo WhatsApp</a></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONFIGURAÇÃO — edite aqui
+   ============================================================ */
+const CONFIG = {
+  WHATSAPP: '5541999999999',        // DDI + DDD + número, só dígitos
+  API_BASE: '',                      // ex.: 'https://aderlize-api.SEU-USUARIO.workers.dev' (ver README)
+  SALVAR_IMAGEM_NA_NUVEM: false,     // true quando a rota /upload (R2) estiver ativa
+  SOBRA_LATERAL: 0.10,               // m além do vão, em cada lado
+  BARRA: 0.15,                       // m de bainha inferior
+  CABECOTE: 0.10,                    // m de bainha/entretela superior
+  BAINHAS_LATERAIS: 0.20,            // m (2 painéis x 2 laterais x 5 cm)
+  COSTURA_PANO: 0.04,                // m perdidos por emenda entre panos
+  FATOR_CONFECCAO_FORRO: 1.3,        // confecção com forro custa 30% a mais
+  INSTALACAO_BASE: 90,               // R$ por visita
+  INSTALACAO_M: 18,                  // R$ por metro de trilho
+  MARGEM_FAIXA: 0.10,                // faixa +-10% exibida ao cliente
+  TILE_M: 0.30                       // tamanho real (m) de uma repetição da textura na prévia
+};
+
+const MODELOS = {
+  wave:      { nome:'Wave',            fator:2.5, confeccao:45, ferragem:85, ferragemNome:'Trilho suíço e fita wave', dobra:0.18, irreg:0.05,
+               desc:'Ondas contínuas e iguais que correm leves no trilho suíço. Visual limpo e contemporâneo.',
+               en:'ripplefold (S-fold) curtains on a slim ceiling track, with evenly spaced soft continuous waves' },
+  americana: { nome:'Prega Americana', fator:2.8, confeccao:38, ferragem:55, ferragemNome:'Trilho e ganchos', dobra:0.15, irreg:0.12,
+               desc:'Pregas triplas costuradas no cabeçote. Clássica, com caimento encorpado.',
+               en:'triple pinch pleat curtains on a slim track, with pinched pleats at the heading and rounded folds below' },
+  macho:     { nome:'Prega Macho',     fator:3.0, confeccao:48, ferragem:55, ferragemNome:'Trilho e ganchos', dobra:0.20, irreg:0.08,
+               desc:'Pregas largas e planas, alinhadas como alfaiataria. Valoriza tecidos estampados.',
+               en:'box pleat curtains with flat, crisp tailored folds and sharp creases' },
+  ilhos:     { nome:'Varão com Ilhós', fator:2.0, confeccao:30, ferragem:65, ferragemNome:'Varão, ilhós e ponteiras', dobra:0.21, irreg:0.30,
+               desc:'Argolas no próprio tecido correm pelo varão aparente. Prática e descontraída.',
+               en:'grommet top curtains hanging from a visible brass rod, with deep relaxed folds' }
+};
+
+const PERFIS = {
+  wave:      s => s,
+  americana: s => s >= 0 ? Math.pow(s, 0.6) : -Math.pow(-s, 2.2),
+  macho:     s => Math.max(-1, Math.min(1, s * 2.2)),
+  ilhos:     s => s
+};
+
+const FORRO = { nome:'Forro blackout', preco:42.9, rolo:2.8 };
+
+/* padrao: linho | voil | liso | veludo | listra | geo | floral | damasco
+   Para usar a foto real do tecido: img:'tecidos/linho-cru.jpg' (uma repetição, fotografada de frente) */
+const TECIDOS = [
+  { id:'linho-cru',      nome:'Linho Cru',            cat:'Linho',     preco:69.9,  rolo:2.8, base:'#e3d8c5', padrao:'linho', en:'natural undyed linen with visible slub texture' },
+  { id:'linho-grafite',  nome:'Linho Grafite',        cat:'Linho',     preco:74.9,  rolo:2.8, base:'#5d6163', padrao:'linho', en:'charcoal grey linen with visible slub texture' },
+  { id:'voil-off',       nome:'Voil Off-White',       cat:'Voil',      preco:39.9,  rolo:2.8, base:'#f3f0e8', padrao:'voil', sheer:0.58, en:'sheer off-white voile, translucent, light passing through' },
+  { id:'voil-linhao',    nome:'Voil Linhão',          cat:'Voil',      preco:49.9,  rolo:2.8, base:'#e6dcc9', padrao:'linho', sheer:0.7, en:'semi-sheer beige linen-look voile, softly translucent' },
+  { id:'blackout-areia', nome:'Blackout Areia',       cat:'Blackout',  preco:89.9,  rolo:2.8, base:'#c9b699', padrao:'liso', en:'opaque sand-colored blackout fabric with a matte finish' },
+  { id:'veludo-musgo',   nome:'Veludo Musgo',         cat:'Veludo',    preco:119.9, rolo:1.4, base:'#4a5a3b', padrao:'veludo', en:'moss green velvet with a soft sheen on the folds' },
+  { id:'listra-areia',   nome:'Listrado Areia',       cat:'Estampado', preco:79.9,  rolo:2.8, base:'#eee5d4', acc:'#b39870', padrao:'listra', en:'cream fabric with vertical sand-colored stripes' },
+  { id:'geo-marrakech',  nome:'Geométrico Marrakech', cat:'Estampado', preco:84.9,  rolo:1.4, rapport:0.15, base:'#f0e9dd', acc:'#2f5d62', padrao:'geo', en:'cream fabric with a teal moroccan trellis pattern' },
+  { id:'floral-provence',nome:'Floral Provence',      cat:'Estampado', preco:92.9,  rolo:1.4, rapport:0.30, base:'#f4eee3', acc:'#b5656b', acc2:'#6f8a5e', padrao:'floral', en:'cream fabric with small dusty-rose flowers and sage leaves' },
+  { id:'damasco-ouro',   nome:'Jacquard Damasco',     cat:'Jacquard',  preco:129.9, rolo:2.8, rapport:0.30, base:'#d8c398', acc:'#bba06a', padrao:'damasco', en:'gold jacquard damask with a tone-on-tone medallion pattern' }
+];
+
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const brl = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+const fm = v => v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' m';
+const arred = v => Math.ceil(v * 10 - 1e-9) / 10;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const waUrl = t => `https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent(t)}`;
+
+let toastT;
+function toast(msg, ms = 4000) {
+  const el = $('#toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), ms);
+}
+function rng(seed) {
+  let a = 0; for (const ch of seed) a = (a * 31 + ch.charCodeAt(0)) | 0;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function dataURLtoBlob(d) {
+  const [h, b] = d.split(','); const mime = h.match(/:(.*?);/)[1]; const bin = atob(b);
+  const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], { type: mime });
+}
+function baixar(dataUrl, nome = 'simulacao-aderlize.jpg') {
+  const a = document.createElement('a'); a.href = dataUrl; a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function carregarImagem(src) {
+  return new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = src; });
+}
+function novoCanvas(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; }
+
+/* ============================================================
+   Texturas de tecido (procedurais; substituíveis por foto real)
+   ============================================================ */
+const tileCache = {};
+function trama(g, S, r, f) {
+  for (let y = 0; y < S; y += 2) { g.fillStyle = `rgba(0,0,0,${((0.015 + r() * 0.05) * f).toFixed(3)})`; g.fillRect(0, y, S, 1); }
+  for (let x = 0; x < S; x += 2) { g.fillStyle = `rgba(255,255,255,${(r() * 0.06 * f).toFixed(3)})`; g.fillRect(x, 0, 1, S); }
+}
+function slubs(g, S, r, n, a) {
+  g.fillStyle = `rgba(0,0,0,${a})`;
+  for (let i = 0; i < n; i++) { const x = r() * S, y = Math.floor(r() * S), w = 6 + r() * 24; g.fillRect(x, y, w, 1); if (x + w > S) g.fillRect(x - S, y, w, 1); }
+}
+function flor(g, cx, cy, s, T, rot) {
+  g.fillStyle = T.acc2;
+  for (const a of [rot + 0.9, rot + 3.6]) { g.save(); g.translate(cx, cy); g.rotate(a); g.beginPath(); g.ellipse(0, -20 * s, 5 * s, 11 * s, 0, 0, Math.PI * 2); g.fill(); g.restore(); }
+  g.fillStyle = T.acc;
+  for (let i = 0; i < 5; i++) { g.save(); g.translate(cx, cy); g.rotate(rot + i * Math.PI * 2 / 5); g.beginPath(); g.ellipse(0, -9 * s, 6 * s, 9 * s, 0, 0, Math.PI * 2); g.fill(); g.restore(); }
+  g.fillStyle = '#e7c375'; g.beginPath(); g.arc(cx, cy, 4 * s, 0, Math.PI * 2); g.fill();
+}
+function medalhao(g, cx, cy) {
+  g.beginPath(); g.moveTo(cx, cy - 58);
+  g.bezierCurveTo(cx + 30, cy - 40, cx + 10, cy - 10, cx + 42, cy);
+  g.bezierCurveTo(cx + 10, cy + 10, cx + 30, cy + 40, cx, cy + 58);
+  g.bezierCurveTo(cx - 30, cy + 40, cx - 10, cy + 10, cx - 42, cy);
+  g.bezierCurveTo(cx - 10, cy - 10, cx - 30, cy - 40, cx, cy - 58); g.fill();
+}
+function gerarTile(T) {
+  if (tileCache[T.id]) return tileCache[T.id];
+  const S = 200, c = novoCanvas(S, S), g = c.getContext('2d'), r = rng(T.id);
+  g.fillStyle = T.base; g.fillRect(0, 0, S, S);
+  switch (T.padrao) {
+    case 'linho': trama(g, S, r, 1); slubs(g, S, r, 70, 0.07); break;
+    case 'voil': trama(g, S, r, 0.5); break;
+    case 'liso': trama(g, S, r, 0.35); break;
+    case 'veludo':
+      trama(g, S, r, 0.25);
+      for (let x = 0; x < S; x++) { g.fillStyle = `rgba(255,255,255,${(0.03 + 0.03 * Math.sin(x / S * Math.PI * 2)).toFixed(3)})`; g.fillRect(x, 0, 1, S); }
+      break;
+    case 'listra':
+      g.fillStyle = T.acc; g.fillRect(24, 0, 30, S); g.fillRect(66, 0, 5, S); g.fillRect(150, 0, 5, S);
+      g.globalAlpha = 0.45; g.fillRect(108, 0, 14, S); g.globalAlpha = 1; trama(g, S, r, 0.7); break;
+    case 'geo':
+      g.strokeStyle = T.acc; g.lineWidth = 6;
+      for (const x of [0, 100, 200]) for (const y of [0, 100, 200]) { g.beginPath(); g.arc(x, y, 70.7, 0, Math.PI * 2); g.stroke(); }
+      g.fillStyle = T.acc; for (const [x, y] of [[50, 50], [150, 50], [50, 150], [150, 150]]) { g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill(); }
+      trama(g, S, r, 0.5); break;
+    case 'floral':
+      trama(g, S, r, 0.4);
+      flor(g, 50, 55, 1.2, T, 0.2); flor(g, 150, 150, 1.2, T, 1.1); flor(g, 150, 48, 0.6, T, 2.0); flor(g, 52, 150, 0.6, T, 0.7); break;
+    case 'damasco':
+      g.fillStyle = T.acc; medalhao(g, 100, 100);
+      for (const [x, y] of [[0, 0], [200, 0], [0, 200], [200, 200]]) medalhao(g, x, y);
+      g.fillStyle = T.base; g.globalAlpha = .55; g.save(); g.translate(100, 100); g.scale(0.55, 0.55); medalhao(g, 0, 0); g.restore(); g.globalAlpha = 1;
+      trama(g, S, r, 0.45); break;
+  }
+  tileCache[T.id] = c; return c;
+}
+async function precarregarFotosTecido() {
+  for (const T of TECIDOS) if (T.img) {
+    try { const im = await carregarImagem(T.img); const c = novoCanvas(im.width, im.height); c.getContext('2d').drawImage(im, 0, 0); tileCache[T.id] = c; } catch (e) { console.warn('Tecido sem foto:', T.img); }
+  }
+}
+
+/* ============================================================
+   Motor de orçamento (funções puras)
+   ============================================================ */
+function consumoTecido(larguraPlana, alturaCorte, rolo, rapport) {
+  const precisa = larguraPlana + CONFIG.BAINHAS_LATERAIS;
+  if (alturaCorte <= rolo - 0.03) {
+    // tecido "de altura": a largura do rolo vira a altura da cortina; compra-se o comprimento franzido
+    return { metodo:'altura', metros: arred(precisa), panos:null, corte:null };
+  }
+  // tecido "de largura": emendam-se panos verticais
+  const util = rolo - CONFIG.COSTURA_PANO;
+  const panos = Math.ceil(precisa / util);
+  const corte = rapport ? Math.ceil(alturaCorte / rapport - 1e-9) * rapport : alturaCorte;
+  return { metodo:'largura', metros: arred(panos * corte), panos, corte };
+}
+
+function calcularOrcamento({ largura, altura, modelo, tecido, forro, instalacao }) {
+  const M = MODELOS[modelo], T = TECIDOS.find(t => t.id === tecido);
+  const larguraTrilho = largura + 2 * CONFIG.SOBRA_LATERAL;
+  const larguraPlana = larguraTrilho * M.fator;
+  const alturaCorte = altura + CONFIG.BARRA + CONFIG.CABECOTE;
+  const cons = consumoTecido(larguraPlana, alturaCorte, T.rolo, T.rapport || 0);
+  const consForro = forro ? consumoTecido(larguraPlana, alturaCorte, FORRO.rolo, 0) : null;
+  const custoTecido = cons.metros * T.preco;
+  const custoForro = consForro ? consForro.metros * FORRO.preco : 0;
+  const confeccao = larguraTrilho * M.confeccao * (forro ? CONFIG.FATOR_CONFECCAO_FORRO : 1);
+  const ferragem = larguraTrilho * M.ferragem;
+  const inst = instalacao ? CONFIG.INSTALACAO_BASE + larguraTrilho * CONFIG.INSTALACAO_M : 0;
+  const total = custoTecido + custoForro + confeccao + ferragem + inst;
+  return { M, T, largura, altura, forro, instalacao, larguraTrilho, larguraPlana, alturaCorte, cons, consForro,
+           custoTecido, custoForro, confeccao, ferragem, inst, total,
+           min: total * (1 - CONFIG.MARGEM_FAIXA), max: total * (1 + CONFIG.MARGEM_FAIXA) };
+}
+
+/* ============================================================
+   Estado e interface
+   ============================================================ */
+const state = { base:null, rect:null, modelo:'wave', tecido:TECIDOS[0].id, abertura:0.25,
+                comparar:false, marcando:false, drag:null, iaPronta:false, q:null, demo:true };
+const canvas = $('#stage'), ctx = canvas.getContext('2d');
+const M_ = () => MODELOS[state.modelo];
+const T_ = () => TECIDOS.find(t => t.id === state.tecido);
+
+function svgPerfil(id, W = 120, H = 36) {
+  const f = PERFIS[id], ciclos = id === 'macho' ? 3 : 3.5, pts = [], meio = H * 0.62;
+  for (let i = 0; i <= 160; i++) {
+    const x = 4 + i * (W - 8) / 160, th = i / 160 * ciclos * Math.PI * 2;
+    pts.push(`${x.toFixed(1)},${(meio - f(Math.sin(th)) * H * 0.26).toFixed(1)}`);
+  }
+  let extra = `<line class="rail" x1="2" y1="4" x2="${W - 2}" y2="4"/>`;
+  if (id === 'ilhos') {
+    extra = `<line class="rod" x1="2" y1="${meio}" x2="${W - 2}" y2="${meio}"/>`;
+    let rings = '';
+    for (let k = 0; k <= ciclos * 2; k++) { const x = 4 + (k / (ciclos * 2)) * (W - 8); rings += `<circle class="ring" cx="${x.toFixed(1)}" cy="${meio}" r="3.2"/>`; }
+    return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${extra}<polyline class="fab" points="${pts.join(' ')}"/>${rings}</svg>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${extra}<polyline class="fab" points="${pts.join(' ')}"/></svg>`;
+}
+
+function montarUI() {
+  $('#modelos-opcoes').innerHTML = Object.entries(MODELOS).map(([id, M]) => `
+    <label class="modelo">
+      <input type="radio" name="modelo" value="${id}" ${id === state.modelo ? 'checked' : ''}>
+      ${svgPerfil(id)}
+      <strong>${M.nome}</strong><small>Usa ${String(M.fator).replace('.', ',')}× a largura</small>
+    </label>`).join('');
+  document.querySelectorAll('input[name=modelo]').forEach(i => i.addEventListener('change', () => { state.modelo = i.value; mudou(); }));
+
+  $('#swatches').innerHTML = TECIDOS.map(T => {
+    const bg = T.img ? T.img : gerarTile(T).toDataURL();
+    return `<button type="button" class="sw" role="radio" aria-checked="${T.id === state.tecido}" data-id="${T.id}">
+      <span class="chip" style="background-image:url(${bg})"></span>
+      <span class="nm">${T.nome}</span><span class="pr">${brl(T.preco)}/m</span></button>`;
+  }).join('');
+  document.querySelectorAll('.sw').forEach(b => b.addEventListener('click', () => {
+    state.tecido = b.dataset.id;
+    document.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-checked', x === b));
+    mudou();
+  }));
+
+  $('#mgrid').innerHTML = Object.entries(MODELOS).map(([id, M]) => `
+    <article class="mcard">${svgPerfil(id, 240, 64)}
+      <h3>${M.nome}</h3><p class="fx">Consome cerca de ${String(M.fator).replace('.', ',')}× a largura</p><p>${M.desc}</p></article>`).join('');
+
+  const oi = waUrl('Olá, Aderlize! Vim pelo site e gostaria de falar sobre cortinas.');
+  $('#wa-top').href = oi; $('#wa-foot').href = oi;
+
+  if (navigator.canShare) {
+    try { if (navigator.canShare({ files:[new File([''], 'a.jpg', { type:'image/jpeg' })] })) $('#btn-share').hidden = false; } catch (e) {}
+  }
+}
+
+function lerEntradas() {
+  const n = id => parseFloat(String($(id).value).replace(',', '.'));
+  const largura = n('#largura'), altura = n('#altura');
+  let erro = '';
+  if (!(largura >= 0.4 && largura <= 8)) erro = 'Informe a largura entre 0,40 e 8,00 m.';
+  else if (!(altura >= 0.4 && altura <= 4.5)) erro = 'Informe a altura entre 0,40 e 4,50 m.';
+  return { largura, altura, forro: $('#forro').checked, instalacao: $('#instalacao').checked, valido: !erro, erro };
+}
+
+function atualizarOrcamento() {
+  const e = lerEntradas();
+  if (!e.valido) {
+    $('#quote-lines').innerHTML = ''; $('#total').textContent = '—'; $('#faixa').textContent = '';
+    $('#consumo-info').textContent = e.erro; state.q = null; return null;
+  }
+  const q = calcularOrcamento({ ...e, modelo: state.modelo, tecido: state.tecido });
+  const linhas = [
+    [`Tecido ${q.T.nome} (${fm(q.cons.metros)})`, q.custoTecido],
+    q.consForro ? [`Forro blackout (${fm(q.consForro.metros)})`, q.custoForro] : null,
+    [`Confecção ${q.M.nome}`, q.confeccao],
+    [`${q.M.ferragemNome} (${fm(q.larguraTrilho)})`, q.ferragem],
+    q.instalacao ? ['Instalação', q.inst] : null
+  ].filter(Boolean);
+  $('#quote-lines').innerHTML = linhas.map(([k, v]) => `<div><dt>${k}</dt><dd>${brl(v)}</dd></div>`).join('');
+  $('#total').textContent = brl(q.total);
+  $('#faixa').textContent = `Faixa estimada: ${brl(q.min)} a ${brl(q.max)}`;
+  $('#consumo-info').textContent = q.cons.metodo === 'altura'
+    ? `Tecido com rolo de ${fm(q.T.rolo)} usado na altura: ${fm(q.larguraTrilho)} de trilho × ${String(q.M.fator).replace('.', ',')} de franzido, mais bainhas.`
+    : `Rolo de ${fm(q.T.rolo)}: ${q.cons.panos} panos de ${fm(q.cons.corte)}${q.T.rapport ? `, altura ajustada ao rapport de ${Math.round(q.T.rapport * 100)} cm` : ''}.`;
+  const T = q.T;
+  $('#tecido-info').textContent = `${T.nome}: ${T.cat.toLowerCase()}, rolo de ${fm(T.rolo)}${T.sheer ? ', translúcido' : ''}.`;
+  state.q = q; return q;
+}
+
+/* ============================================================
+   Sala de exemplo
+   ============================================================ */
+function salaDemo() {
+  const W = 1400, H = 950, c = novoCanvas(W, H), g = c.getContext('2d'), r = rng('sala');
+  let gr = g.createLinearGradient(0, 0, W, 0);
+  gr.addColorStop(0, '#d5cfc4'); gr.addColorStop(.5, '#ebe6dc'); gr.addColorStop(1, '#d2cbbe');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 6000; i++) { g.fillStyle = `rgba(0,0,0,${(r() * 0.025).toFixed(3)})`; g.fillRect(r() * W, r() * H * 0.8, 2, 2); }
+  const piso = H * 0.8;
+  gr = g.createLinearGradient(0, piso, 0, H); gr.addColorStop(0, '#a38058'); gr.addColorStop(1, '#76583b');
+  g.fillStyle = gr; g.fillRect(0, piso, W, H - piso);
+  g.strokeStyle = 'rgba(60,40,20,.22)'; g.lineWidth = 2;
+  for (let i = -24; i <= 24; i++) { g.beginPath(); g.moveTo(W / 2 + i * 58, piso); g.lineTo(W / 2 + i * 150, H); g.stroke(); }
+  g.fillStyle = '#f2efe8'; g.fillRect(0, piso - 20, W, 20); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(0, piso, W, 4);
+  // janela
+  const wx = W * 0.33, wy = H * 0.17, ww = W * 0.34, wh = H * 0.5;
+  g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(wx - 12, wy - 12, ww + 36, wh + 36);
+  g.fillStyle = '#f5f3ee'; g.fillRect(wx - 18, wy - 18, ww + 36, wh + 36);
+  gr = g.createLinearGradient(0, wy, 0, wy + wh); gr.addColorStop(0, '#95bfdc'); gr.addColorStop(.7, '#d8e9f1'); gr.addColorStop(1, '#eef3ea');
+  g.fillStyle = gr; g.fillRect(wx, wy, ww, wh);
+  g.fillStyle = 'rgba(125,135,145,.4)'; g.fillRect(wx + ww * 0.58, wy + wh * 0.42, ww * 0.13, wh * 0.45); g.fillRect(wx + ww * 0.12, wy + wh * 0.55, ww * 0.1, wh * 0.35);
+  g.fillStyle = 'rgba(88,120,92,.6)';
+  for (let i = 0; i < 10; i++) { g.beginPath(); g.arc(wx + i * ww / 9, wy + wh * 0.86, 28 + (i % 3) * 14, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = '#f5f3ee'; g.fillRect(wx + ww / 2 - 6, wy, 12, wh); g.fillRect(wx, wy + wh * 0.62, ww, 10);
+  g.fillStyle = '#e8e4db'; g.fillRect(wx - 34, wy + wh + 18, ww + 68, 14);
+  g.fillStyle = 'rgba(255,250,232,.16)'; g.beginPath(); g.moveTo(wx, piso); g.lineTo(wx + ww, piso); g.lineTo(wx + ww + 140, H); g.lineTo(wx - 70, H); g.closePath(); g.fill();
+  // aparador e luminária
+  const ax = W * 0.04, aw = W * 0.2;
+  g.fillStyle = '#5b4939'; g.fillRect(ax, piso - 200, aw, 176); g.fillStyle = '#463729'; g.fillRect(ax, piso - 200, aw, 10);
+  g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(ax + aw / 2 - 1, piso - 186, 2, 150);
+  g.fillStyle = '#3a2e23'; g.fillRect(ax + 14, piso - 24, 8, 22); g.fillRect(ax + aw - 22, piso - 24, 8, 22);
+  g.fillStyle = '#2f3a38'; g.fillRect(ax + aw * 0.62, piso - 290, 6, 90);
+  g.fillStyle = '#efe4cf'; g.beginPath(); g.moveTo(ax + aw * 0.5, piso - 290); g.lineTo(ax + aw * 0.8, piso - 290); g.lineTo(ax + aw * 0.86, piso - 350); g.lineTo(ax + aw * 0.44, piso - 350); g.closePath(); g.fill();
+  // vaso com planta
+  const px = W * 0.86;
+  g.fillStyle = '#4f6b45';
+  for (let i = 0; i < 9; i++) { g.save(); g.translate(px, piso - 120); g.rotate(-1.1 + i * 0.28); g.beginPath(); g.ellipse(0, -90, 16, 80, 0, 0, Math.PI * 2); g.fill(); g.restore(); }
+  g.fillStyle = '#cbbfad'; g.beginPath(); g.moveTo(px - 60, piso - 130); g.lineTo(px + 60, piso - 130); g.lineTo(px + 44, piso - 4); g.lineTo(px - 44, piso - 4); g.closePath(); g.fill();
+  return { canvas: c, rect: { x: wx - W * 0.075, y: wy - 70, w: ww + W * 0.15, h: piso - 8 - (wy - 70) } };
+}
+
+/* ============================================================
+   Renderização da cortina
+   ============================================================ */
+function texturaPlana(tile, escala, w, h) {
+  const c = novoCanvas(w, h), g = c.getContext('2d');
+  const pat = g.createPattern(tile, 'repeat');
+  g.save(); g.scale(escala, escala); g.fillStyle = pat; g.fillRect(0, 0, w / escala + 1, h / escala + 1); g.restore();
+  return c;
+}
+
+function renderPainel(tex, pw, ph, foldPx, srcW, M, T, fase) {
+  const W = Math.ceil(pw), H = Math.ceil(ph), c = novoCanvas(W, H), g = c.getContext('2d');
+  const perfil = PERFIS[state.modelo], k = srcW / pw, w2 = 2 * Math.PI / foldPx, beta = 0.7;
+  const hem = Math.min(12, foldPx * 0.14), escuro = T.sheer ? 0.28 : 0.46;
+  const th = x => x * w2 + fase + M.irreg * Math.sin(x * w2 * 0.31 + fase * 2);
+  for (let x = 0; x < W; x++) {
+    const t = th(x), d = perfil(Math.sin(t));
+    const sx = clamp(k * x + k * beta * Math.sin(2 * t) / (2 * w2), 0, tex.width - 1);
+    g.drawImage(tex, sx, 0, 1, H, x, 0, 1.25, H - hem * (1 - d) / 2);
+  }
+  g.globalCompositeOperation = 'source-atop';
+  for (let x = 0; x < W; x++) {
+    const t = th(x), d = perfil(Math.sin(t)), s = clamp(0.8 * d + 0.3 * Math.cos(t), -1, 1);
+    g.fillStyle = `rgba(22,15,9,${((1 - s) / 2 * escuro).toFixed(3)})`; g.fillRect(x, 0, 1, H);
+    if (s > 0.35) { g.fillStyle = `rgba(255,252,244,${((s - 0.35) * 0.16).toFixed(3)})`; g.fillRect(x, 0, 1, H); }
+  }
+  const gr = g.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, 'rgba(0,0,0,.2)'); gr.addColorStop(0.05, 'rgba(0,0,0,0)'); gr.addColorStop(0.88, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.1)');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  // cabeçote de cada modelo
+  const posicoes = alvo => { const xs = []; for (let n = -2; n < W / foldPx + 3; n++) { const x = (alvo + 2 * Math.PI * n - fase) / w2; if (x >= 0 && x < W) xs.push(x); } return xs; };
+  if (state.modelo === 'americana') {
+    const hh = H * 0.075;
+    for (const x of posicoes(-Math.PI / 2)) {
+      g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(x - 1.5, 0, 3, hh);
+      g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(x + 1.5, 0, 1.5, hh); g.fillRect(x - 4, 0, 1.2, hh);
+    }
+    g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(0, hh, W, 1.5);
+  } else if (state.modelo === 'macho') {
+    for (const x of [...posicoes(0), ...posicoes(Math.PI)]) {
+      const cg = g.createLinearGradient(0, 0, 0, H * 0.35);
+      cg.addColorStop(0, 'rgba(0,0,0,.3)'); cg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = cg; g.fillRect(x - 1, 0, 2, H * 0.35);
+    }
+  }
+  g.globalCompositeOperation = 'source-over';
+  return c;
+}
+
+function desenharCortina(g, R) {
+  const M = M_(), T = T_();
+  const trilho = state.q ? state.q.larguraTrilho : 2.6;
+  const pxPorM = R.w / trilho;
+  const tile = gerarTile(T), escala = (CONFIG.TILE_M * pxPorM) / tile.width;
+  const half = R.w / 2, pw = Math.max(half * (1 - state.abertura * 0.75), 24);
+  const railH = Math.max(6, R.h * 0.014);
+  const ilhos = state.modelo === 'ilhos';
+  const rodY = R.y + railH;
+  const topY = ilhos ? rodY - railH * 0.2 : R.y + railH;
+  const ph = R.y + R.h - topY;
+  const foldPx = Math.max(10, M.dobra * pxPorM * (pw / half));
+  const srcW = half * M.fator;
+  const tex = texturaPlana(tile, escala, srcW + srcW * 0.5 + 8, ph);
+  const ext = R.w * 0.02;
+
+  // sombra da ferragem na parede
+  g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(R.x - ext, R.y + railH * 1.6, R.w + 2 * ext, railH * 0.7);
+
+  const paineis = [{ x: R.x, fase: 0.4, lado: -1 }, { x: R.x + R.w - pw, fase: 2.1, lado: 1 }];
+  for (const p of paineis) {
+    const pc = renderPainel(tex, pw, ph, foldPx, srcW, M, T, p.fase);
+    g.save();
+    if (T.sheer) { g.globalAlpha = T.sheer; }
+    else { g.shadowColor = 'rgba(0,0,0,.3)'; g.shadowBlur = Math.max(8, R.w * 0.014); g.shadowOffsetX = p.lado * 3; g.shadowOffsetY = 5; }
+    g.drawImage(pc, p.x, topY);
+    g.restore();
+    p.w2 = 2 * Math.PI / foldPx;
+  }
+
+  if (ilhos) {
+    const rr = railH * 0.8;
+    const gr = g.createLinearGradient(0, rodY - rr, 0, rodY + rr);
+    gr.addColorStop(0, '#d8b979'); gr.addColorStop(.45, '#a57b3c'); gr.addColorStop(1, '#5e4520');
+    g.fillStyle = gr; g.fillRect(R.x - ext, rodY - rr, R.w + 2 * ext, rr * 2);
+    for (const x of [R.x - ext, R.x + R.w + ext]) { g.beginPath(); g.arc(x, rodY, rr * 2, 0, Math.PI * 2); g.fill(); }
+    g.strokeStyle = '#8a6630'; g.lineWidth = Math.max(2, rr * 0.55);
+    for (const p of paineis) {
+      for (let n = -1; n < pw / foldPx + 2; n++) {
+        const x = p.x + (Math.PI / 2 + 2 * Math.PI * n - p.fase) / p.w2;
+        if (x < p.x || x > p.x + pw) continue;
+        g.beginPath(); g.ellipse(x, rodY, rr * 1.1, rr * 1.9, 0, 0, Math.PI * 2); g.stroke();
+      }
+    }
+  } else {
+    g.fillStyle = '#eceae5'; g.fillRect(R.x - ext, R.y, R.w + 2 * ext, railH);
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(R.x - ext, R.y + railH - 1.5, R.w + 2 * ext, 1.5);
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(R.x - ext, R.y, R.w + 2 * ext, 1.5);
+  }
+}
+
+function render() {
+  if (!state.base) return;
+  ctx.drawImage(state.base, 0, 0);
+  if (state.marcando) {
+    ctx.fillStyle = 'rgba(20,28,26,.45)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const d = state.drag;
+    if (d) {
+      const x = Math.min(d.x0, d.x1), y = Math.min(d.y0, d.y1), w = Math.abs(d.x1 - d.x0), h = Math.abs(d.y1 - d.y0);
+      if (w > 1 && h > 1) ctx.drawImage(state.base, x, y, w, h, x, y, w, h);
+      ctx.save(); ctx.setLineDash([12, 8]); ctx.lineWidth = Math.max(2, canvas.width / 500); ctx.strokeStyle = '#fff'; ctx.strokeRect(x, y, w, h); ctx.restore();
+    }
+    return;
+  }
+  if (state.rect && !state.comparar) desenharCortina(ctx, state.rect);
+}
+let raf = 0;
+function agendar() { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); }
+
+function mudou() {
+  atualizarOrcamento();
+  if (state.iaPronta) { state.iaPronta = false; $('#ia-box').hidden = true; }
+  agendar();
+}
+
+function definirBase(c, rect, demo) {
+  state.base = c; state.rect = rect; state.demo = demo; state.iaPronta = false; $('#ia-box').hidden = true;
+  canvas.width = c.width; canvas.height = c.height;
+  canvas.style.maxWidth = `calc(74vh * ${(c.width / c.height).toFixed(4)})`;
+  if (!rect) iniciarMarcacao(); else { state.marcando = false; $('#hint').hidden = true; canvas.classList.remove('marcando'); }
+  agendar();
+}
+function iniciarMarcacao() {
+  state.marcando = true; state.drag = null; state.comparar = false;
+  $('#btn-comparar').setAttribute('aria-pressed', 'false'); $('#btn-comparar').textContent = 'Ver sem cortina';
+  $('#hint').hidden = false; canvas.classList.add('marcando'); agendar();
+}
+
+/* marcação da área */
+function pos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height };
+}
+canvas.addEventListener('pointerdown', e => {
+  if (!state.marcando) return;
+  e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+  const p = pos(e); state.drag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y }; agendar();
+});
+canvas.addEventListener('pointermove', e => {
+  if (!state.drag) return;
+  const p = pos(e); state.drag.x1 = clamp(p.x, 0, canvas.width); state.drag.y1 = clamp(p.y, 0, canvas.height); agendar();
+});
+function fimMarcacao() {
+  const d = state.drag; if (!d) return; state.drag = null;
+  const R = { x: Math.min(d.x0, d.x1), y: Math.min(d.y0, d.y1), w: Math.abs(d.x1 - d.x0), h: Math.abs(d.y1 - d.y0) };
+  if (R.w < canvas.width * 0.06 || R.h < canvas.height * 0.08) { toast('Arraste um retângulo maior, cobrindo a janela e a parede ao redor.'); agendar(); return; }
+  state.rect = R; state.marcando = false; $('#hint').hidden = true; canvas.classList.remove('marcando');
+  state.iaPronta = false; $('#ia-box').hidden = true; agendar();
+}
+canvas.addEventListener('pointerup', fimMarcacao);
+canvas.addEventListener('pointercancel', () => { state.drag = null; agendar(); });
+
+/* foto do cliente */
+$('#foto').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f);
+  carregarImagem(url).then(im => {
+    const max = 1600, s = Math.min(1, max / Math.max(im.width, im.height));
+    const c = novoCanvas(im.width * s, im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url); definirBase(c, null, false);
+    $('#stage').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }).catch(() => toast('Não foi possível abrir essa imagem. Envie uma foto em JPG ou PNG.'));
+  e.target.value = '';
+});
+$('#btn-demo').addEventListener('click', () => { const d = salaDemo(); definirBase(d.canvas, d.rect, true); });
+$('#btn-remarcar').addEventListener('click', iniciarMarcacao);
+$('#abertura').addEventListener('input', e => { state.abertura = e.target.value / 100; mudou(); });
+['#largura', '#altura', '#forro', '#instalacao'].forEach(id => $(id).addEventListener('input', mudou));
+$('#btn-comparar').addEventListener('click', e => {
+  if (state.marcando || !state.rect) return;
+  state.comparar = !state.comparar;
+  e.currentTarget.setAttribute('aria-pressed', state.comparar);
+  e.currentTarget.textContent = state.comparar ? 'Ver com cortina' : 'Ver sem cortina';
+  agendar();
+});
+
+/* ============================================================
+   Exportação, WhatsApp e IA
+   ============================================================ */
+function imagemFinal() {
+  let src;
+  if (state.iaPronta) src = $('#ia');
+  else { const cmp = state.comparar; state.comparar = false; render(); src = canvas; state.comparar = cmp; }
+  const barH = Math.round(Math.max(48, src.width * 0.045));
+  const c = novoCanvas(src.width, src.height + barH), g = c.getContext('2d');
+  g.drawImage(src, 0, 0);
+  if (!state.iaPronta && state.comparar) agendar();
+  g.fillStyle = '#1d2927'; g.fillRect(0, src.height, c.width, barH);
+  g.fillStyle = '#f6f6f2'; g.textBaseline = 'middle';
+  g.font = `600 ${Math.round(barH * 0.42)}px "Bodoni Moda", Georgia, serif`; g.fillText('Aderlize Cortinas', barH * 0.5, src.height + barH / 2);
+  g.textAlign = 'right'; g.font = `500 ${Math.round(barH * 0.3)}px Manrope, sans-serif`;
+  g.fillText(`${M_().nome}, ${T_().nome}`, c.width - barH * 0.5, src.height + barH / 2);
+  return c;
+}
+
+function textoWhats(q, link) {
+  const L = [
+    'Olá, Aderlize! Fiz uma simulação no site e gostaria de fechar um orçamento.', '',
+    `*Modelo:* ${q.M.nome}`,
+    `*Tecido:* ${q.T.nome} (${brl(q.T.preco)}/m)`,
+    `*Vão:* ${fm(q.largura)} de largura × ${fm(q.altura)} de altura`,
+    `*Trilho/varão:* ${fm(q.larguraTrilho)}`,
+    `*Consumo de tecido:* ${fm(q.cons.metros)}${q.consForro ? ` + forro blackout ${fm(q.consForro.metros)}` : ''}`,
+    `*Instalação:* ${q.instalacao ? 'sim' : 'não'}`,
+    `*Estimativa do site:* ${brl(q.total)} (faixa ${brl(q.min)} a ${brl(q.max)})`
+  ];
+  const nome = $('#cli-nome').value.trim(), local = $('#cli-local').value.trim();
+  if (nome || local) L.push('');
+  if (nome) L.push(`*Nome:* ${nome}`);
+  if (local) L.push(`*Bairro/cidade:* ${local}`);
+  L.push('', link ? `*Simulação:* ${link}` : 'Vou anexar a imagem da simulação aqui na conversa.');
+  return L.join('\n');
+}
+
+$('#btn-baixar').addEventListener('click', () => {
+  if (state.marcando) return toast('Termine de marcar a área da cortina primeiro.');
+  baixar(imagemFinal().toDataURL('image/jpeg', 0.9));
+});
+
+$('#btn-wa').addEventListener('click', async () => {
+  const q = atualizarOrcamento();
+  if (!q) { toast('Confira as medidas antes de enviar.'); $('#largura').focus(); return; }
+  if (state.marcando) return toast('Marque a área da cortina na foto antes de enviar.');
+  const dataUrl = imagemFinal().toDataURL('image/jpeg', 0.9);
+  if (CONFIG.API_BASE && CONFIG.SALVAR_IMAGEM_NA_NUVEM) {
+    const w = window.open('about:blank', '_blank');
+    let link = null;
+    try {
+      const r = await fetch(CONFIG.API_BASE + '/upload', { method:'POST', headers:{ 'Content-Type':'image/jpeg' }, body: dataURLtoBlob(dataUrl) });
+      if (r.ok) link = (await r.json()).url;
+    } catch (e) { console.warn(e); }
+    if (!link) baixar(dataUrl);
+    const url = waUrl(textoWhats(q, link));
+    if (w) w.location.href = url; else location.href = url;
+    return;
+  }
+  baixar(dataUrl);
+  window.open(waUrl(textoWhats(q, null)), '_blank');
+  toast('A imagem da simulação foi baixada. Anexe-a na conversa do WhatsApp.', 7000);
+});
+
+$('#btn-share').addEventListener('click', async () => {
+  const q = atualizarOrcamento(); if (!q) return toast('Confira as medidas antes de compartilhar.');
+  const f = new File([dataURLtoBlob(imagemFinal().toDataURL('image/jpeg', 0.9))], 'simulacao-aderlize.jpg', { type:'image/jpeg' });
+  try { await navigator.share({ files:[f], text: textoWhats(q, null) }); } catch (e) { /* cancelado */ }
+});
+
+function montarPrompt() {
+  const M = M_(), T = T_();
+  return [
+    'Photorealistic interior photo edit.',
+    'Image 1 is the customer\'s room with a rough digital preview of new curtains already placed. Image 2 is the same room without curtains. Image 3 is the exact fabric swatch.',
+    `Re-render ONLY the curtains as real ${M.en}, made of ${T.en}.`,
+    'Match the swatch exactly: same colors, same pattern and same pattern scale as in image 1. Do not recolor, simplify or invent a new pattern.',
+    'Keep the curtain position, size, opening width and hardware exactly as in image 1.',
+    'Add natural fabric physics: soft fold shading, subtle hem, gentle contact shadows on the wall, lighting consistent with the room and window light.',
+    'Everything else must remain pixel-identical to image 2: walls, window, furniture, floor, decor, camera angle, perspective, white balance.',
+    'No people, no text, no watermark, no extra objects.'
+  ].join(' ');
+}
+
+$('#btn-ia').addEventListener('click', async () => {
+  if (state.marcando || !state.rect) return toast('Marque a área da cortina na foto primeiro.');
+  if (!CONFIG.API_BASE) return toast('A versão com IA ainda não está ligada. Configure CONFIG.API_BASE com o endereço do Worker (veja o README).', 7000);
+  const btn = $('#btn-ia'); btn.disabled = true; btn.textContent = 'Gerando, leva uns 20 s…';
+  try {
+    const cmp = state.comparar; state.comparar = false; render();
+    const composite = canvas.toDataURL('image/jpeg', 0.88);
+    state.comparar = cmp; agendar();
+    const room = state.base.toDataURL('image/jpeg', 0.88);
+    const swatch = gerarTile(T_()).toDataURL('image/png');
+    const r = await fetch(CONFIG.API_BASE + '/simulate', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ prompt: montarPrompt(), images: [composite, room, swatch] })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.image) throw new Error(data.error || `HTTP ${r.status}`);
+    const im = await carregarImagem(data.image);
+    // paste-back: só a região da cortina vem da IA; o resto é a foto original
+    const R = state.rect, W = state.base.width, H = state.base.height;
+    const out = $('#ia'); out.width = W; out.height = H; const o = out.getContext('2d');
+    o.drawImage(state.base, 0, 0);
+    const m = novoCanvas(W, H), mg = m.getContext('2d');
+    mg.drawImage(im, 0, 0, W, H);
+    const pad = Math.max(14, R.w * 0.04);
+    const mask = novoCanvas(W, H), kg = mask.getContext('2d');
+    kg.filter = `blur(${Math.round(pad / 2)}px)`; kg.fillStyle = '#000';
+    kg.fillRect(R.x - R.w * 0.03, R.y - pad * 0.6, R.w * 1.06, R.h + pad);
+    mg.globalCompositeOperation = 'destination-in'; mg.drawImage(mask, 0, 0);
+    o.drawImage(m, 0, 0);
+    state.iaPronta = true; $('#ia-box').hidden = false;
+    $('#ia-box').scrollIntoView({ behavior:'smooth', block:'center' });
+  } catch (e) {
+    console.error(e); toast('Não foi possível gerar a versão com IA agora. A simulação acima continua valendo para o orçamento.', 7000);
+  } finally { btn.disabled = false; btn.textContent = 'Gerar versão realista com IA'; }
+});
+
+/* ============================================================
+   Início
+   ============================================================ */
+montarUI();
+atualizarOrcamento();
+{ const d = salaDemo(); definirBase(d.canvas, d.rect, true); }
+precarregarFotosTecido().then(() => { if (TECIDOS.some(t => t.img)) { montarUI(); agendar(); } });
+if (document.fonts) document.fonts.ready.then(agendar);
+</script>
+</body>
+</html>
